@@ -1,0 +1,23 @@
+{
+	"name": "axolotl-plugin-orphanage/dummyitemsblocks",
+	"description": "Registers (non-functional) items and blocks for PocketMine-MP",
+	"type": "project",
+	"require-dev": {
+		"axolotl-pm/pocketmine-mp": "^5.46",
+		"phpstan/phpstan": "^2.2"
+	},
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"diamondgold\\DummyItemsBlocks\\": "src/diamondgold/DummyItemsBlocks/"
+		}
+	},
+	"authors": [
+		{
+			"name": "diamond-gold (ace)"
+		}
+	],
+	"scripts": {
+		"lint": "vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=2G"
+	}
+}

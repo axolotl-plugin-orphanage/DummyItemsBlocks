@@ -1,0 +1,8 @@
+parameters:
+  level: 9
+  paths:
+    - src
+  stubFiles:
+    - vendor/axolotl-pm/pocketmine-mp/tests/phpstan/stubs/pmmpthread.stub
+  ignoreErrors:
+    - identifier: missingType.iterableValue

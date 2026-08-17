@@ -8,6 +8,7 @@ use pocketmine\block\utils\FacesOppositePlacingPlayerTrait;
 use pocketmine\block\utils\SupportType;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
+use pocketmine\utils\AssumptionFailedError;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 
 class Shelf extends Transparent
@@ -73,6 +74,7 @@ class Shelf extends Transparent
                 new AxisAlignedBB(13 / 16, 0, 0, 1, 1, 1),
                 new AxisAlignedBB(11 / 16, 0, 0, 13 / 16, 4 / 16, 1),
             ],
+            default => throw new AssumptionFailedError("Invalid facing {$this->facing}"),
         };
     }
 

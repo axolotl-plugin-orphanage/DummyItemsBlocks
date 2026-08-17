@@ -57,7 +57,7 @@ class CardinalGrowthBlock extends Flowable
     public function canBePlacedAt(Block $blockReplace, Vector3 $clickVector, int $face, bool $isClickedBlock): bool
     {
         return ($blockReplace instanceof self && $blockReplace->hasSameTypeId($this) && $blockReplace->value < 3) ||
-            $this->supportedWhenPlacedAt($blockReplace, $clickVector, $face, $isClickedBlock);
+            ($this->canBeSupportedAt($blockReplace) && parent::canBePlacedAt($blockReplace, $clickVector, $face, $isClickedBlock));
     }
 
     public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool

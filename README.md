@@ -11,6 +11,15 @@ Join the **axolotl-pm** community for support, updates and discussion:
 [![axolotl-pm Discord](https://img.shields.io/discord/1526008653482692768?label=axolotl-pm+Discord&style=for-the-badge&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/XbUXqtVPqp)
 </div>
 
+### 📥 Download
+<div align="center">
+
+[![Stable Release](https://img.shields.io/github/v/release/axolotl-plugin-orphanage/DummyItemsBlocks?label=Stable+Release&style=for-the-badge&logo=github&logoColor=white&color=2292ee)](https://github.com/axolotl-plugin-orphanage/DummyItemsBlocks/releases/latest/download/DummyItemsBlocks.phar)
+[![Nightly Build](https://img.shields.io/badge/dynamic/yaml?url=https://raw.githubusercontent.com/axolotl-plugin-orphanage/DummyItemsBlocks/main/plugin.yml&query=$.version&label=Nightly+Build&prefix=v&color=blueviolet&style=for-the-badge&logo=github&logoColor=white)](https://github.com/axolotl-plugin-orphanage/DummyItemsBlocks/releases/download/nightly/DummyItemsBlocks.phar)
+
+*Stable recommended for production · Nightly always up to date from the latest commit*
+</div>
+
 ![DummyItemsBlocks](https://socialify.git.ci/diamond-gold/DummyItemsBlocks/image?description=1&font=Inter&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fdiamond-gold%2FDummyItemsBlocks%2Fraw%2Fmain%2Ficon.gif&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
 
 > Items and blocks added are not functional, they are just for decoration purposes.

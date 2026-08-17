@@ -138,11 +138,33 @@ final class CreativeInventoryRegistration
                     throw new \RuntimeException("Unable to load creative data for $categoryId");
                 }
                 $groups = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+                if (!is_array($groups)) {
+                    throw new \RuntimeException("Invalid creative data for $categoryId");
+                }
                 foreach ($groups as $group) {
-                    $groupName = $group['group_name'];
-                    $groupIcon = is_string($group['group_icon']) ? $group['group_icon'] : null;
-                    foreach ($group['items'] as $entry) {
-                        $itemId = is_string($entry) ? $entry : ($entry['name'] ?? null);
+                    if (!is_array($group)) {
+                        continue;
+                    }
+                    $groupName = $group['group_name'] ?? null;
+                    if (!is_string($groupName)) {
+                        continue;
+                    }
+                    $groupIconValue = $group['group_icon'] ?? null;
+                    $groupIcon = is_string($groupIconValue) ? $groupIconValue : null;
+                    $groupItems = $group['items'] ?? null;
+                    if (!is_array($groupItems)) {
+                        continue;
+                    }
+                    foreach ($groupItems as $entry) {
+                        $itemId = null;
+                        if (is_string($entry)) {
+                            $itemId = $entry;
+                        } elseif (is_array($entry)) {
+                            $entryName = $entry['name'] ?? null;
+                            if (is_string($entryName)) {
+                                $itemId = $entryName;
+                            }
+                        }
                         if (is_string($itemId) && !isset(self::$metadata[$itemId])) {
                             self::$metadata[$itemId] = [$category, $groupName !== '' ? $groupName : null, $groupIcon];
                         }
@@ -184,15 +206,17 @@ final class CreativeInventoryRegistration
 
     private static function getIcon(string $id): ?Item
     {
-        if (isset(self::$items[$id])) {
-            return clone self::$items[$id];
+        $registeredItem = self::$items[$id] ?? null;
+        if ($registeredItem instanceof Item) {
+            return clone $registeredItem;
         }
         $item = StringToItemParser::getInstance()->parse($id);
         if ($item !== null) {
             return $item;
         }
         try {
-            return GlobalItemDataHandlers::getDeserializer()->deserializeType(new SavedItemData($id));
+            $item = GlobalItemDataHandlers::getDeserializer()->deserializeType(new SavedItemData($id));
+            return $item;
         } catch (\Throwable) {
             return null;
         }

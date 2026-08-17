@@ -8,6 +8,7 @@ use pocketmine\block\Flowable;
 use pocketmine\block\utils\StaticSupportTrait;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
 
 class SupportedAgeBitPlant extends Flowable
 {
@@ -29,6 +30,11 @@ class SupportedAgeBitPlant extends Flowable
     {
         $this->ageBit = $ageBit;
         return $this;
+    }
+
+    public function canBePlacedAt(Block $blockReplace, Vector3 $clickVector, int $face, bool $isClickedBlock): bool
+    {
+        return $this->canBeSupportedAt($blockReplace) && parent::canBePlacedAt($blockReplace, $clickVector, $face, $isClickedBlock);
     }
 
     private function canBeSupportedAt(Block $block): bool

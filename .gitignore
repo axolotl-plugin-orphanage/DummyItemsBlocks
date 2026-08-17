@@ -49,3 +49,5 @@ Temporary Items
 # Common IDEs
 .idea/
 nbproject/*
+
+/vendor/

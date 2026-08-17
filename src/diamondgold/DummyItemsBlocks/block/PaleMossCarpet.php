@@ -13,6 +13,7 @@ use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
+use pocketmine\utils\AssumptionFailedError;
 use pocketmine\world\BlockTransaction;
 
 class PaleMossCarpet extends Flowable
@@ -75,6 +76,7 @@ class PaleMossCarpet extends Flowable
                 Facing::EAST => new AxisAlignedBB(15 / 16, 0, 0, 1, $height, 1),
                 Facing::SOUTH => new AxisAlignedBB(0, 0, 15 / 16, 1, $height, 1),
                 Facing::WEST => new AxisAlignedBB(0, 0, 0, 1 / 16, $height, 1),
+                default => throw new AssumptionFailedError("Invalid facing $facing"),
             };
         }
 

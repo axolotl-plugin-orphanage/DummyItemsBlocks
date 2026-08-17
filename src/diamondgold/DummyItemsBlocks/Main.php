@@ -93,14 +93,8 @@ final class Main extends PluginBase
             BlockTypeNames::CLIENT_REQUEST_PLACEHOLDER_BLOCK,
             //BlockTypeNames::MOVING_BLOCK, // should I remove or not? Does not seem to be useful since it is not interact-able and invisible
         ];
-        $blocks = $config->get("blocks", []);
-        if (!is_array($blocks)) {
-            throw new ConfigLoadException("Config 'blocks' must be string array");
-        }
+        $blocks = self::getStringList($config->get("blocks", []), "blocks");
         foreach ($blocks as $k => $id) {
-            if (!is_string($id)) {
-                throw new ConfigLoadException("Config 'blocks' at index $k must be a string, got " . gettype($id));
-            }
             if (in_array($id, $removedBlocks, true)) {
                 $this->getLogger()->warning("Block $id is intentionally removed!");
                 unset($blocks[$k]);
@@ -118,10 +112,7 @@ final class Main extends PluginBase
             }
         }
         //$config->set("items", ReflectionHelper::ItemTypeNames());
-        $items = $config->get("items", []);
-        if (!is_array($items)) {
-            throw new ConfigLoadException("Config 'items' must be string array");
-        }
+        $items = self::getStringList($config->get("items", []), "items");
         $removedItems = [
             ItemTypeNames::SPAWN_EGG,
             ItemTypeNames::CHEST_BOAT,
@@ -273,6 +264,22 @@ final class Main extends PluginBase
                 }
             }, $worker);
         });
+    }
+
+    /** @return string[] */
+    private static function getStringList(mixed $value, string $name): array
+    {
+        if (!is_array($value)) {
+            throw new ConfigLoadException("Config '$name' must be string array");
+        }
+        $result = [];
+        foreach ($value as $key => $id) {
+            if (!is_string($id)) {
+                throw new ConfigLoadException("Config '$name' at index $key must be a string, got " . gettype($id));
+            }
+            $result[] = $id;
+        }
+        return $result;
     }
 
     /**

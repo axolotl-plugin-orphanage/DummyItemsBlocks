@@ -73,21 +73,22 @@ final class Crafter extends Opaque
 
     public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool
     {
+        $playerFacing = $player?->getHorizontalFacing();
         $this->setOrientation(match (Facing::opposite($face)) {
-            Facing::UP => match ($player?->getHorizontalFacing()) {
+            Facing::UP => match ($playerFacing) {
                 Facing::NORTH, null => Orientation::DOWN_SOUTH,
                 Facing::SOUTH => Orientation::DOWN_NORTH,
                 Facing::WEST => Orientation::DOWN_EAST,
                 Facing::EAST => Orientation::DOWN_WEST,
-                default => throw new AssumptionFailedError("Invalid player facing direction " . $player?->getHorizontalFacing()),
+                default => throw new AssumptionFailedError("Invalid player facing direction " . var_export($playerFacing, true)),
 
             },
-            Facing::DOWN => match ($player?->getHorizontalFacing()) {
+            Facing::DOWN => match ($playerFacing) {
                 Facing::NORTH, null => Orientation::UP_SOUTH,
                 Facing::SOUTH => Orientation::UP_NORTH,
                 Facing::WEST => Orientation::UP_EAST,
                 Facing::EAST => Orientation::UP_WEST,
-                default => throw new AssumptionFailedError("Invalid player facing direction " . $player?->getHorizontalFacing()),
+                default => throw new AssumptionFailedError("Invalid player facing direction " . var_export($playerFacing, true)),
 
             },
             Facing::NORTH => Orientation::SOUTH_UP,
