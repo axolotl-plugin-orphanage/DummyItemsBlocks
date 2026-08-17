@@ -1,3 +1,16 @@
+## 🏠 Adopted by axolotl-plugin-orphanage
+
+This plugin has been adopted by [**axolotl-plugin-orphanage**](https://github.com/axolotl-plugin-orphanage) due to prolonged inactivity from its original author. It will continue to be maintained and updated to follow [**axolotl-pm/PocketMine-MP**](https://github.com/axolotl-pm/PocketMine-MP).
+
+> [!NOTE]
+> This plugin is primarily supported on **axolotl-pm**. Compatibility with other PocketMine-MP forks is not guaranteed and no support will be provided for them.
+
+Join the **axolotl-pm** community for support, updates and discussion:
+<div align="center">
+
+[![axolotl-pm Discord](https://img.shields.io/discord/1526008653482692768?label=axolotl-pm+Discord&style=for-the-badge&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/XbUXqtVPqp)
+</div>
+
 ![DummyItemsBlocks](https://socialify.git.ci/diamond-gold/DummyItemsBlocks/image?description=1&font=Inter&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fdiamond-gold%2FDummyItemsBlocks%2Fraw%2Fmain%2Ficon.gif&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
 
 > Items and blocks added are not functional, they are just for decoration purposes.
