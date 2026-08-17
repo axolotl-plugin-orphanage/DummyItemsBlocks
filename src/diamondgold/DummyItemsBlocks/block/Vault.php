@@ -28,11 +28,13 @@ final class Vault extends Transparent
     }
     use DummyTileTrait;
 
+    private bool $ominous = false;
     private VaultState $state = VaultState::INACTIVE;
 
     protected function describeBlockOnlyState(RuntimeDataDescriber $w): void
     {
         $this->describeFacing($w);
+        $w->bool($this->ominous);
         $w->enum($this->state);
     }
 
@@ -44,6 +46,17 @@ final class Vault extends Transparent
     public function getState(): VaultState
     {
         return $this->state;
+    }
+
+    public function isOminous(): bool
+    {
+        return $this->ominous;
+    }
+
+    public function setOminous(bool $ominous): self
+    {
+        $this->ominous = $ominous;
+        return $this;
     }
 
     public function setState(VaultState $state): self

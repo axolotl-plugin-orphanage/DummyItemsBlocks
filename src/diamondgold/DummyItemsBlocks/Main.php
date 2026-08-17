@@ -4,16 +4,10 @@ namespace diamondgold\DummyItemsBlocks;
 
 use Closure;
 use diamondgold\DummyItemsBlocks\item\DummyItem;
-use diamondgold\DummyItemsBlocks\item\firework\FireworkStar;
-use diamondgold\DummyItemsBlocks\item\horn\GoatHorn;
-use diamondgold\DummyItemsBlocks\item\horn\GoatHornType;
-use diamondgold\DummyItemsBlocks\item\horn\GoatHornTypeIdMap;
 use diamondgold\DummyItemsBlocks\item\ItemPlacedAsBlock;
 use diamondgold\DummyItemsBlocks\tile\DummyTile;
 use diamondgold\DummyItemsBlocks\tile\TileNames;
 use diamondgold\DummyItemsBlocks\util\BlockStateRegistration;
-use diamondgold\DummyItemsBlocks\util\DummyBlocks;
-use diamondgold\DummyItemsBlocks\util\DummyItems;
 use diamondgold\DummyItemsBlocks\util\ReflectionHelper;
 use diamondgold\DummyItemsBlocks\util\Utils;
 use InvalidArgumentException;
@@ -25,28 +19,17 @@ use pocketmine\block\BlockTypeInfo;
 use pocketmine\block\Opaque;
 use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\block\tile\TileFactory;
-use pocketmine\block\utils\WoodType;
-use pocketmine\crafting\CraftingManagerFromDataHelper;
-use pocketmine\crafting\json\ItemStackData;
-use pocketmine\data\bedrock\BedrockDataFiles;
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\BlockStateDeserializeException;
 use pocketmine\data\bedrock\block\BlockTypeNames;
 use pocketmine\data\bedrock\block\convert\UnsupportedBlockStateException;
-use pocketmine\data\bedrock\DyeColorIdMap;
-use pocketmine\data\bedrock\item\ItemSerializerDeserializerRegistrar;
-use pocketmine\data\bedrock\item\ItemTypeDeserializeException;
 use pocketmine\data\bedrock\item\ItemTypeNames;
 use pocketmine\data\bedrock\item\SavedItemData;
-use pocketmine\data\bedrock\PotionTypeIdMap;
 use pocketmine\inventory\CreativeInventory;
 use pocketmine\item\Item;
 use pocketmine\item\ItemBlock;
-use pocketmine\item\ItemBlockWallOrFloor;
 use pocketmine\item\ItemIdentifier;
 use pocketmine\item\ItemTypeIds;
-use pocketmine\item\PotionType;
-use pocketmine\item\SplashPotion;
 use pocketmine\item\StringToItemParser;
 use pocketmine\item\VanillaItems;
 use pocketmine\network\mcpe\convert\TypeConverter;
@@ -166,10 +149,7 @@ final class Main extends PluginBase
                      "VanillaElytra" => [ItemTypeNames::ELYTRA],
                      "Composter" => [BlockTypeNames::COMPOSTER],
                      "Crossbow" => [ItemTypeNames::CROSSBOW],
-                     "Trident" => [ItemTypeNames::TRIDENT], // PM-Trident
                      "Shield" => [ItemTypeNames::SHIELD],
-                     "RecoveryCompass" => [ItemTypeNames::RECOVERY_COMPASS],
-                     "Fireworks" => [ItemTypeNames::FIREWORK_ROCKET],
                  ] as $pluginName => $pluginItemsBlocks) {
             if ($this->getServer()->getPluginManager()->getPlugin($pluginName)) {
                 foreach ($pluginItemsBlocks as $removeId) {
@@ -180,26 +160,6 @@ final class Main extends PluginBase
                 }
             }
         }
-        // Sign: Item must be registered if block is registered, if not remove block
-        $itemName = ItemTypeNames::BAMBOO_SIGN;
-        $blockNames = [BlockTypeNames::BAMBOO_STANDING_SIGN, BlockTypeNames::BAMBOO_WALL_SIGN];
-        $blockFound = false;
-        foreach ($blockNames as $blockName) {
-            if (in_array($blockName, $blocks)) {
-                $blockFound = true;
-                break;
-            }
-        }
-        if ($blockFound) {
-            if (!in_array($itemName, $items, true)) {
-                foreach ($blockNames as $blockName) {
-                    if (Utils::removeIfPresent($blockName, $blocks)) {
-                        $this->getLogger()->warning("Removed Block $blockName as Item $itemName is not registered");
-                    }
-                }
-            }
-        }
-
         $blocks = array_values($blocks);
         //sort($blocks);
         $items = array_values($items);
@@ -220,10 +180,9 @@ final class Main extends PluginBase
         self::registerSpecialBlocks($blocksWithoutSpecial);
         self::registerBlocks($blocksWithoutSpecial);
 
-        $itemsWithoutSpecial = $items;
-        self::registerItemsPlacedAsBlock($itemsWithoutSpecial, $blocks);
-        self::registerSpecialItems($itemsWithoutSpecial);
-        self::registerItems($itemsWithoutSpecial);
+        $itemsWithoutPlacedAsBlock = $items;
+        self::registerItemsPlacedAsBlock($itemsWithoutPlacedAsBlock, $blocks);
+        self::registerItems($itemsWithoutPlacedAsBlock);
 
         $this->registerDummyTiles($blocks);
 
@@ -288,25 +247,6 @@ final class Main extends PluginBase
             $this->getLogger()->emergency("Server restart required to remove unsupported items");
             throw new DisablePluginException();
         }
-        /*
-        // reload creative inventory from json file
-        // pro: no need to add items manually
-        // con: likely incompatible with other plugins that add to creative inventory
-
-        CreativeInventory::getInstance()->clear();
-        $creativeItems = CraftingManagerFromDataHelper::loadJsonArrayOfObjectsFile(
-            BedrockDataFiles::CREATIVEITEMS_JSON,
-            ItemStackData::class
-        );
-        foreach ($creativeItems as $data) {
-            $item = CraftingManagerFromDataHelper::deserializeItemStack($data);
-            if ($item === null) {
-                $this->getLogger()->debug("Creative item $data->name");
-                continue;
-            }
-            CreativeInventory::getInstance()->add($item);
-        }
-        */
         $blocksSerialized = igbinary_serialize($blocks);
         $itemsSerialized = igbinary_serialize($items);
         assert($blocksSerialized !== null);
@@ -329,7 +269,6 @@ final class Main extends PluginBase
                     Main::registerSpecialBlocks($blocksWithoutSpecial);
                     Main::registerBlocks($blocksWithoutSpecial);
                     Main::registerItemsPlacedAsBlock($items, $blocks);
-                    Main::registerSpecialItems($items);
                     Main::registerItems($items);
                 }
             }, $worker);
@@ -380,34 +319,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent($id, $blocks)) {
             BlockStateRegistration::multiFaceDirection($id);
         }
-        // PILLAR_AXIS
-        foreach ([
-                     BlockTypeNames::BAMBOO_BLOCK,
-                     BlockTypeNames::STRIPPED_BAMBOO_BLOCK,
-                     BlockTypeNames::INFESTED_DEEPSLATE,
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::pillar($id);
-            }
-        }
-        // hanging signs ATTACHED_BIT FACING_DIRECTION GROUND_SIGN_DIRECTION HANGING T/F
-        foreach ([
-                     BlockTypeNames::ACACIA_HANGING_SIGN,
-                     BlockTypeNames::BAMBOO_HANGING_SIGN,
-                     BlockTypeNames::BIRCH_HANGING_SIGN,
-                     BlockTypeNames::CHERRY_HANGING_SIGN,
-                     BlockTypeNames::CRIMSON_HANGING_SIGN,
-                     BlockTypeNames::DARK_OAK_HANGING_SIGN,
-                     BlockTypeNames::JUNGLE_HANGING_SIGN,
-                     BlockTypeNames::MANGROVE_HANGING_SIGN,
-                     BlockTypeNames::OAK_HANGING_SIGN,
-                     BlockTypeNames::SPRUCE_HANGING_SIGN,
-                     BlockTypeNames::WARPED_HANGING_SIGN,
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::HangingSign($id);
-            }
-        }
         // bee_hive DIRECTION HONEY_LEVEL 0-5
         foreach ([BlockTypeNames::BEEHIVE, BlockTypeNames::BEE_NEST] as $id) {
             if (Utils::removeIfPresent($id, $blocks)) {
@@ -426,53 +337,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::CALIBRATED_SCULK_SENSOR, $blocks)) {
             BlockStateRegistration::CalibratedSculkSensor();
         }
-        // campfire soul_campfire EXTINGUISHED T/F DIRECTION
-        foreach ([BlockTypeNames::CAMPFIRE, BlockTypeNames::SOUL_CAMPFIRE] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::Campfire($id);
-            }
-        }
-        $id = BlockTypeNames::BAMBOO_BUTTON;
-        if (Utils::removeIfPresent($id, $blocks)) {
-            BlockStateRegistration::button($id); // registered as stone button so that WoodType is not required
-        }
-        $id = BlockTypeNames::BAMBOO_DOOR;
-        if (Utils::removeIfPresent($id, $blocks)) {
-            BlockStateRegistration::door($id);
-        }
-        $id = BlockTypeNames::BAMBOO_FENCE_GATE;
-        if (Utils::removeIfPresent($id, $blocks)) {
-            BlockStateRegistration::fenceGate($id, WoodType::OAK()); // will probably be obsolete when WoodType exists, it doesn't matter now since it's only for runtime
-        }
-        // can't register separately, either both or none
-        foreach ([
-                     BlockTypeNames::BAMBOO_SLAB => BlockTypeNames::BAMBOO_DOUBLE_SLAB,
-                     BlockTypeNames::BAMBOO_MOSAIC_SLAB => BlockTypeNames::BAMBOO_MOSAIC_DOUBLE_SLAB,
-                 ] as $singleId => $doubleId) {
-            if (Utils::removeIfPresent($singleId, $blocks) && Utils::removeIfPresent($doubleId, $blocks)) {
-                BlockStateRegistration::slab($singleId, $doubleId);
-            }
-        }
-        // can't register separately, either both or none
-        $standingId = BlockTypeNames::BAMBOO_STANDING_SIGN;
-        $wallId = BlockTypeNames::BAMBOO_WALL_SIGN;
-        if (Utils::removeIfPresent($standingId, $blocks) && Utils::removeIfPresent($wallId, $blocks)) {
-            BlockStateRegistration::sign($standingId, $wallId, DummyBlocks::BAMBOO_STANDING_SIGN(), DummyBlocks::BAMBOO_WALL_SIGN());
-        }
-        foreach ([BlockTypeNames::BAMBOO_STAIRS, BlockTypeNames::BAMBOO_MOSAIC_STAIRS] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::stairs($id);
-            }
-        }
-        $id = BlockTypeNames::BAMBOO_TRAPDOOR;
-        if (Utils::removeIfPresent($id, $blocks)) {
-            BlockStateRegistration::trapdoor($id);
-        }
-        $id = BlockTypeNames::BAMBOO_PRESSURE_PLATE;
-        if (Utils::removeIfPresent($id, $blocks)) {
-            BlockStateRegistration::simplePressurePlate($id); // registered as stone pressure plate so that WoodType is not required
-        }
-
         // cherry_sapling AGE_BIT T/F CANNOT use encodeSapling() no SAPLING_TYPE
         if (Utils::removeIfPresent(BlockTypeNames::CHERRY_SAPLING, $blocks)) {
             BlockStateRegistration::CherrySapling();
@@ -527,10 +391,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::POINTED_DRIPSTONE, $blocks)) {
             BlockStateRegistration::PointedDripstone();
         }
-        // respawn_anchor RESPAWN_ANCHOR_CHARGE 0-4
-        if (Utils::removeIfPresent(BlockTypeNames::RESPAWN_ANCHOR, $blocks)) {
-            BlockStateRegistration::RespawnAnchor();
-        }
         // scaffolding STABILITY 0-7 STABILITY_CHECK T/F
         if (Utils::removeIfPresent(BlockTypeNames::SCAFFOLDING, $blocks)) {
             BlockStateRegistration::Scaffolding();
@@ -559,10 +419,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::STRUCTURE_BLOCK, $blocks)) {
             BlockStateRegistration::StructureBlock();
         }
-        // structure_void STRUCTURE_VOID_TYPE string
-        if (Utils::removeIfPresent(BlockTypeNames::STRUCTURE_VOID, $blocks)) {
-            BlockStateRegistration::StructureVoid();
-        }
         // suspicious_gravel suspicious_sand BRUSHED_PROGRESS 0 HANGING T/F
         foreach ([BlockTypeNames::SUSPICIOUS_GRAVEL, BlockTypeNames::SUSPICIOUS_SAND] as $id) {
             if (Utils::removeIfPresent($id, $blocks)) {
@@ -573,80 +429,9 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::TURTLE_EGG, $blocks)) {
             BlockStateRegistration::TurtleEgg();
         }
-        // copper bulb LIT POWERED_BIT
-        foreach ([
-                     BlockTypeNames::COPPER_BULB,
-                     BlockTypeNames::EXPOSED_COPPER_BULB,
-                     BlockTypeNames::OXIDIZED_COPPER_BULB,
-                     BlockTypeNames::WEATHERED_COPPER_BULB,
-                     BlockTypeNames::WAXED_COPPER_BULB,
-                     BlockTypeNames::WAXED_EXPOSED_COPPER_BULB,
-                     BlockTypeNames::WAXED_OXIDIZED_COPPER_BULB,
-                     BlockTypeNames::WAXED_WEATHERED_COPPER_BULB
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::CopperBulb($id);
-            }
-        }
-        foreach ([
-                     BlockTypeNames::COPPER_DOOR,
-                     BlockTypeNames::EXPOSED_COPPER_DOOR,
-                     BlockTypeNames::OXIDIZED_COPPER_DOOR,
-                     BlockTypeNames::WEATHERED_COPPER_DOOR,
-                     BlockTypeNames::WAXED_COPPER_DOOR,
-                     BlockTypeNames::WAXED_EXPOSED_COPPER_DOOR,
-                     BlockTypeNames::WAXED_OXIDIZED_COPPER_DOOR,
-                     BlockTypeNames::WAXED_WEATHERED_COPPER_DOOR
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::door($id);
-            }
-        }
-        foreach ([
-                     BlockTypeNames::COPPER_TRAPDOOR,
-                     BlockTypeNames::EXPOSED_COPPER_TRAPDOOR,
-                     BlockTypeNames::OXIDIZED_COPPER_TRAPDOOR,
-                     BlockTypeNames::WEATHERED_COPPER_TRAPDOOR,
-                     BlockTypeNames::WAXED_COPPER_TRAPDOOR,
-                     BlockTypeNames::WAXED_EXPOSED_COPPER_TRAPDOOR,
-                     BlockTypeNames::WAXED_OXIDIZED_COPPER_TRAPDOOR,
-                     BlockTypeNames::WAXED_WEATHERED_COPPER_TRAPDOOR
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::trapdoor($id);
-            }
-        }
         // crafter CRAFTING TRIGGERED_BIT ORIENTATION
         if (Utils::removeIfPresent(BlockTypeNames::CRAFTER, $blocks)) {
             BlockStateRegistration::Crafter();
-        }
-        // can't register separately, either both or none
-        foreach ([
-                     BlockTypeNames::TUFF_SLAB => BlockTypeNames::TUFF_DOUBLE_SLAB,
-                     BlockTypeNames::TUFF_BRICK_SLAB => BlockTypeNames::TUFF_BRICK_DOUBLE_SLAB,
-                     BlockTypeNames::POLISHED_TUFF_SLAB => BlockTypeNames::POLISHED_TUFF_DOUBLE_SLAB,
-                 ] as $singleId => $doubleId) {
-            if (Utils::removeIfPresent($singleId, $blocks) && Utils::removeIfPresent($doubleId, $blocks)) {
-                BlockStateRegistration::slab($singleId, $doubleId);
-            }
-        }
-        foreach ([
-                     BlockTypeNames::TUFF_STAIRS,
-                     BlockTypeNames::TUFF_BRICK_STAIRS,
-                     BlockTypeNames::POLISHED_TUFF_STAIRS
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::stairs($id);
-            }
-        }
-        foreach ([
-                     BlockTypeNames::TUFF_WALL,
-                     BlockTypeNames::TUFF_BRICK_WALL,
-                     BlockTypeNames::POLISHED_TUFF_WALL
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::wall($id);
-            }
         }
         // trial spawner trial_spawner_state int 1
         if (Utils::removeIfPresent(BlockTypeNames::TRIAL_SPAWNER, $blocks)) {
@@ -678,7 +463,6 @@ final class Main extends PluginBase
      */
     public static function registerItemsPlacedAsBlock(array &$items, array $blocks): void
     {
-        // Examples such as Campfire & Hanging Signs, with the assumption that the item have the same ID as block
         $list = [];
         $blockNames = ReflectionHelper::BlockTypeNames();
         foreach (ReflectionHelper::ItemTypeNames() as $item) {
@@ -696,28 +480,6 @@ final class Main extends PluginBase
                 self::registerSimpleItem($id, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id), $block), [$id]);
             }
         }
-        // special case
-        $registerSign = function (string $itemId, array $blockIds, ItemBlockWallOrFloor $item) use (&$items, $blocks): void {
-            if (in_array($itemId, $items, true)) {
-                $register = true;
-                foreach ($blockIds as $b) {
-                    if (!in_array($b, $blocks, true)) {
-                        $register = false;
-                        break;
-                    }
-                }
-                if ($register) { // should not remove if either one is not present (register as normal item)
-                    Utils::removeIfPresent($itemId, $items);
-                    self::registerSimpleItem($itemId, $item, [$itemId]);
-                }
-            }
-        };
-        $registerSign(
-            ItemTypeNames::BAMBOO_SIGN,
-            [BlockTypeNames::BAMBOO_WALL_SIGN, BlockTypeNames::BAMBOO_STANDING_SIGN],
-            DummyItems::BAMBOO_SIGN()
-        );
-
         // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/5964
         $blockId = BlockTypeNames::POWDER_SNOW;
         $itemId = ItemTypeNames::POWDER_SNOW_BUCKET;
@@ -728,98 +490,6 @@ final class Main extends PluginBase
                 throw new AssumptionFailedError("Block $blockId not registered in StringToItemParser");
             }
             self::registerSimpleItem($itemId, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($itemId), $block), [$itemId]);
-        }
-    }
-
-    /**
-     * @param string[] $items
-     * @return void
-     * @internal
-     */
-    public static function registerSpecialItems(array &$items): void
-    {
-        // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/5276
-        $id = ItemTypeNames::LINGERING_POTION;
-        if (Utils::removeIfPresent($id, $items)) {
-            $item = new SplashPotion(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id));
-            self::map1to1ItemWithMeta(
-                $id,
-                $item,
-                function (SplashPotion $item, int $meta): void {
-                    $item->setType(PotionTypeIdMap::getInstance()->fromId($meta) ?? throw new ItemTypeDeserializeException("Unknown potion type ID $meta"));
-                },
-                fn(SplashPotion $item) => PotionTypeIdMap::getInstance()->toId($item->getType())
-            );
-            StringToItemParser::getInstance()->register($id, fn() => clone $item);
-            // For some reason it disappears from client-side creative inventory if I do registerBlocks() first... why Mojang...?
-            foreach (PotionType::cases() as $type) {
-                $potion = (clone $item)->setType($type);
-                CreativeInventory::getInstance()->add($potion);
-                $name = explode(':', $id);
-                StringToItemParser::getInstance()->register($name[0] . ':' . $type->name . '_' . $name[1], fn() => clone $potion);
-            }
-        }
-        // bare minimum code needed for non-functional item adapted from https://github.com/pmmp/PocketMine-MP/pull/5232
-        // obsolete when merged
-        $id = ItemTypeNames::GOAT_HORN;
-        if (Utils::removeIfPresent($id, $items)) {
-            $item = new GoatHorn(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id));
-            self::map1to1ItemWithMeta(
-                $id,
-                $item,
-                function (GoatHorn $item, int $meta): void {
-                    $item->setType(GoatHornTypeIdMap::getInstance()->fromId($meta) ?? throw new ItemTypeDeserializeException("Unknown horn type ID $meta"));
-                },
-                fn(GoatHorn $item) => GoatHornTypeIdMap::getInstance()->toId($item->getType())
-            );
-            StringToItemParser::getInstance()->register($id, fn() => clone $item);
-            foreach (GoatHornType::cases() as $type) {
-                $horn = (clone $item)->setType($type);
-                CreativeInventory::getInstance()->add($horn);
-                $name = explode(':', $id);
-                StringToItemParser::getInstance()->register($name[0] . ':' . $type->name . '_' . $name[1], fn() => clone $horn);
-            }
-        }
-        // im too lazy to list all the items with compound tag data, easier to just reload ;P
-        $creativeItems = CraftingManagerFromDataHelper::loadJsonArrayOfObjectsFile(
-            BedrockDataFiles::CREATIVEITEMS_JSON,
-            ItemStackData::class
-        );
-        // bare minimum code needed for non-functional item adapted from https://github.com/pmmp/PocketMine-MP/pull/5455
-        // obsolete when merged
-        $id = ItemTypeNames::FIREWORK_STAR;
-        if (Utils::removeIfPresent($id, $items)) {
-            $item = new FireworkStar(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id));
-            self::map1to1ItemWithMeta(
-                $id,
-                $item,
-                function (FireworkStar $item, int $meta): void {
-                    // Colors will be defined by CompoundTag deserialization.
-                },
-                fn(FireworkStar $item) => DyeColorIdMap::getInstance()->toInvertedId($item->getExplosion()->getFlashColor())
-            );
-            StringToItemParser::getInstance()->register($id, fn() => clone $item);
-            foreach ($creativeItems as $data) {
-                if ($data->name === $id) {
-                    $item = CraftingManagerFromDataHelper::deserializeItemStack($data);
-                    if ($item) {
-                        CreativeInventory::getInstance()->add($item);
-                    }
-                }
-            }
-        }
-        $id = ItemTypeNames::FIREWORK_ROCKET;
-        if (Utils::removeIfPresent($id, $items)) {
-            $item = new DummyItem(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id));
-            self::registerSimpleItem($id, $item, [$id], false);
-            foreach ($creativeItems as $data) {
-                if ($data->name === $id) {
-                    $item = CraftingManagerFromDataHelper::deserializeItemStack($data);
-                    if ($item) {
-                        CreativeInventory::getInstance()->add($item);
-                    }
-                }
-            }
         }
     }
 
@@ -866,26 +536,6 @@ final class Main extends PluginBase
     }
 
     /**
-     * @link ItemSerializerDeserializerRegistrar::map1to1ItemWithMeta()
-     * @phpstan-template TItem of Item
-     * @phpstan-param TItem $item
-     * @phpstan-param Closure(TItem, int) : void $deserializeMeta
-     * @phpstan-param Closure(TItem) : int $serializeMeta
-     */
-    private static function map1to1ItemWithMeta(string $id, Item $item, Closure $deserializeMeta, Closure $serializeMeta): void
-    {
-        GlobalItemDataHandlers::getDeserializer()->map($id, function (SavedItemData $data) use ($item, $deserializeMeta): Item {
-            $result = clone $item;
-            $deserializeMeta($result, $data->getMeta());
-            return $result;
-        });
-        GlobalItemDataHandlers::getSerializer()->map($item, function (Item $item) use ($id, $serializeMeta): SavedItemData {
-            $meta = $serializeMeta($item);
-            return new SavedItemData($id, $meta);
-        });
-    }
-
-    /**
      * @param string[] $blocks
      * @return void
      */
@@ -898,7 +548,6 @@ final class Main extends PluginBase
             TileNames::BEEHIVE => [BlockTypeNames::BEEHIVE, BlockTypeNames::BEE_NEST],
             TileNames::BRUSHABLE_BLOCK => [BlockTypeNames::SUSPICIOUS_GRAVEL, BlockTypeNames::SUSPICIOUS_SAND],
             TileNames::CALIBRATED_SCULK_SENSOR => [BlockTypeNames::CALIBRATED_SCULK_SENSOR],
-            TileNames::CAMPFIRE => [BlockTypeNames::CAMPFIRE, BlockTypeNames::SOUL_CAMPFIRE],
             TileNames::CONDUIT => [BlockTypeNames::CONDUIT], // generic block registration, tile not important, activation is client-side, Active Byte 0 Target Long -1 isMovable 1
             TileNames::COMMAND_BLOCK => [BlockTypeNames::COMMAND_BLOCK, BlockTypeNames::CHAIN_COMMAND_BLOCK, BlockTypeNames::REPEATING_COMMAND_BLOCK],
             TileNames::CRAFTER => [BlockTypeNames::CRAFTER],
@@ -907,19 +556,6 @@ final class Main extends PluginBase
             TileNames::DROPPER => [BlockTypeNames::DROPPER],
             TileNames::END_GATEWAY => [BlockTypeNames::END_GATEWAY], // generic block registration, tile not important, not setBlock-able in vanilla, Age Int 0 ExitPortal List{Int,Int,Int}
             TileNames::END_PORTAL => [BlockTypeNames::END_PORTAL], // generic block registration, tile not important, isMovable 1
-            TileNames::HANGING_SIGN => [
-                BlockTypeNames::ACACIA_HANGING_SIGN,
-                BlockTypeNames::BAMBOO_HANGING_SIGN,
-                BlockTypeNames::BIRCH_HANGING_SIGN,
-                BlockTypeNames::CHERRY_HANGING_SIGN,
-                BlockTypeNames::CRIMSON_HANGING_SIGN,
-                BlockTypeNames::DARK_OAK_HANGING_SIGN,
-                BlockTypeNames::JUNGLE_HANGING_SIGN,
-                BlockTypeNames::MANGROVE_HANGING_SIGN,
-                BlockTypeNames::OAK_HANGING_SIGN,
-                BlockTypeNames::SPRUCE_HANGING_SIGN,
-                BlockTypeNames::WARPED_HANGING_SIGN,
-            ],
             TileNames::JIGSAW_BLOCK => [BlockTypeNames::JIGSAW], // unknown tags, not setBlock-able in vanilla
             TileNames::LODESTONE => [BlockTypeNames::LODESTONE], // generic block registration, tile not important, isMovable 1
             TileNames::PISTON_ARM => [

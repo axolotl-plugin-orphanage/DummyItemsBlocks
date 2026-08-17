@@ -22,9 +22,6 @@ final class TileNbtTagNames
     public const VibrationListener = "VibrationListener";
     public const VibrationListener_event = "event";
     public const VibrationListener_selector = "selector";
-    // Campfire
-    public const Items = "Item%d"; // sprintf
-    public const ItemTime = "ItemTime%d"; // sprintf
     // Conduit
     public const Active = "Active";
     public const Target = "Target";
@@ -51,9 +48,6 @@ final class TileNbtTagNames
     public const sherds = "sherds";
     public const animation = "animation";
     public const item = "item";
-    // HangingSign
-    public const HideGlowOutline = "HideGlowOutline";
-    public const TextOwner = "TextOwner";
     // PistonArm
     public const AttachedBlocks = "AttachedBlocks";
     public const BreakBlocks = "BreakBlocks";

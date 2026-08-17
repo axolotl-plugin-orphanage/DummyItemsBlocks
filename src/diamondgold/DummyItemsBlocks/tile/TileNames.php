@@ -7,7 +7,6 @@ final class TileNames
     public const BEEHIVE = "Beehive";
     public const BRUSHABLE_BLOCK = "BrushableBlock";
     public const CALIBRATED_SCULK_SENSOR = "CalibratedSculkSensor";
-    public const CAMPFIRE = "Campfire";
     public const CONDUIT = "Conduit";
     public const COMMAND_BLOCK = "CommandBlock";
     public const CRAFTER = "Crafter";
@@ -16,7 +15,6 @@ final class TileNames
     public const DROPPER = "Dropper";
     public const END_GATEWAY = "EndGateway";
     public const END_PORTAL = "EndPortal";
-    public const HANGING_SIGN = "HangingSign";
     public const JIGSAW_BLOCK = "JigsawBlock";
     public const LODESTONE = "Lodestone";
     public const PISTON_ARM = "PistonArm";
