@@ -589,7 +589,7 @@ final class Main extends PluginBase
                 self::registerSimpleItem($id, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id), $block), [$id], true, true);
             }
         }
-        // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/5964
+        // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/6857
         $blockId = BlockTypeNames::POWDER_SNOW;
         $itemId = ItemTypeNames::POWDER_SNOW_BUCKET;
         if (in_array($itemId, $items, true) && in_array($blockId, $blocks, true)) { //should not remove if either one is not present (register as normal item)

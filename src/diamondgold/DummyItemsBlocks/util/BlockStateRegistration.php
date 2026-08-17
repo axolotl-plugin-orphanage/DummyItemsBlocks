@@ -454,7 +454,7 @@ final class BlockStateRegistration
         );
     }
 
-    // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/4742
+    // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/6922
     public static function Composter(): void
     {
         $id = BlockTypeNames::COMPOSTER;
@@ -784,7 +784,6 @@ final class BlockStateRegistration
         );
     }
 
-    // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/6045
     public static function StructureBlock(): void
     {
         $id = BlockTypeNames::STRUCTURE_BLOCK;
