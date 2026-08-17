@@ -2,16 +2,23 @@
 
 namespace diamondgold\DummyItemsBlocks\util;
 
+use Closure;
 use diamondgold\DummyItemsBlocks\block\BeeHive;
 use diamondgold\DummyItemsBlocks\block\BubbleColumn;
 use diamondgold\DummyItemsBlocks\block\CalibratedSculkSensor;
+use diamondgold\DummyItemsBlocks\block\CardinalFacingBlock;
+use diamondgold\DummyItemsBlocks\block\CardinalGrowthBlock;
+use diamondgold\DummyItemsBlocks\block\CardinalIntBlock;
 use diamondgold\DummyItemsBlocks\block\CherrySapling;
 use diamondgold\DummyItemsBlocks\block\CommandBlock;
 use diamondgold\DummyItemsBlocks\block\Composter;
 use diamondgold\DummyItemsBlocks\block\Crafter;
+use diamondgold\DummyItemsBlocks\block\CopperGolemStatue;
+use diamondgold\DummyItemsBlocks\block\CreakingHeart;
 use diamondgold\DummyItemsBlocks\block\DecoratedPot;
 use diamondgold\DummyItemsBlocks\block\Dispenser;
 use diamondgold\DummyItemsBlocks\block\enum\CrackedState;
+use diamondgold\DummyItemsBlocks\block\enum\CreakingHeartState;
 use diamondgold\DummyItemsBlocks\block\enum\DripstoneThickness;
 use diamondgold\DummyItemsBlocks\block\enum\FacingDirection;
 use diamondgold\DummyItemsBlocks\block\enum\Orientation;
@@ -24,6 +31,7 @@ use diamondgold\DummyItemsBlocks\block\Jigsaw;
 use diamondgold\DummyItemsBlocks\block\Kelp;
 use diamondgold\DummyItemsBlocks\block\MangrovePropagule;
 use diamondgold\DummyItemsBlocks\block\Observer;
+use diamondgold\DummyItemsBlocks\block\PaleMossCarpet;
 use diamondgold\DummyItemsBlocks\block\Piston;
 use diamondgold\DummyItemsBlocks\block\PointedDripstone;
 use diamondgold\DummyItemsBlocks\block\Scaffolding;
@@ -31,9 +39,12 @@ use diamondgold\DummyItemsBlocks\block\SculkCatalyst;
 use diamondgold\DummyItemsBlocks\block\SculkSensor;
 use diamondgold\DummyItemsBlocks\block\SculkShrieker;
 use diamondgold\DummyItemsBlocks\block\SeaGrass;
+use diamondgold\DummyItemsBlocks\block\Shelf;
 use diamondgold\DummyItemsBlocks\block\SnifferEgg;
 use diamondgold\DummyItemsBlocks\block\StructureBlock;
 use diamondgold\DummyItemsBlocks\block\SuspiciousFallable;
+use diamondgold\DummyItemsBlocks\block\SupportedAgeBitPlant;
+use diamondgold\DummyItemsBlocks\block\TallDryGrass;
 use diamondgold\DummyItemsBlocks\block\TrialSpawner;
 use diamondgold\DummyItemsBlocks\block\TurtleEgg;
 use diamondgold\DummyItemsBlocks\block\type\AnyFacingTransparent;
@@ -46,9 +57,14 @@ use pocketmine\block\BlockIdentifier;
 use pocketmine\block\BlockTypeIds;
 use pocketmine\block\BlockTypeInfo;
 use pocketmine\block\BlockTypeTags;
+use pocketmine\block\Chest;
+use pocketmine\block\Flower;
 use pocketmine\block\Leaves;
+use pocketmine\block\Slab;
+use pocketmine\block\Stair;
 use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\block\utils\LeavesType;
+use pocketmine\block\utils\SlabType;
 use pocketmine\block\utils\WoodType;
 use pocketmine\block\Wall;
 use pocketmine\block\Wood;
@@ -59,8 +75,8 @@ use pocketmine\data\bedrock\block\convert\BlockStateDeserializerHelper;
 use pocketmine\data\bedrock\block\convert\BlockStateReader as Reader;
 use pocketmine\data\bedrock\block\convert\BlockStateSerializerHelper;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter as Writer;
-use pocketmine\inventory\CreativeInventory;
 use pocketmine\item\StringToItemParser;
+use pocketmine\math\Facing;
 use pocketmine\world\format\io\GlobalBlockStateHandlers;
 
 /* @internal */
@@ -83,8 +99,45 @@ final class BlockStateRegistration
             StringToItemParser::getInstance()->registerBlock($name, fn() => clone $block);
         }
         if ($addToCreative) {
-            CreativeInventory::getInstance()->add($block->asItem());
+            CreativeInventoryRegistration::add($stringToItemParserNames[0], $block->asItem());
         }
+    }
+
+    private static function registerSimple(string $id, Block $block): void
+    {
+        self::register($block, [$id]);
+
+        GlobalBlockStateHandlers::getDeserializer()->mapSimple($id, fn() => clone $block);
+        GlobalBlockStateHandlers::getSerializer()->mapSimple($block, $id);
+    }
+
+    private static function registerStateful(string $id, Block $block, Closure $deserializer, Closure $serializer): void
+    {
+        self::register($block, [$id]);
+
+        GlobalBlockStateHandlers::getDeserializer()->map($id, $deserializer);
+        GlobalBlockStateHandlers::getSerializer()->map($block, $serializer);
+    }
+
+    private static function registerCardinalFacing(string $id, Block $block, Closure $setFacing, Closure $writeFacing): void
+    {
+        self::registerStateful($id, $block,
+            fn(Reader $reader): Block => $setFacing(clone $block, $reader->readCardinalHorizontalFacing()),
+            fn(Block $block) => $writeFacing($block, Writer::create($id))
+        );
+    }
+
+    public static function growth(string $id, bool $supportsAnyFullBlock): void
+    {
+        $block = new CardinalGrowthBlock(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()), $supportsAnyFullBlock);
+        self::registerStateful($id, $block,
+            fn(Reader $reader): CardinalGrowthBlock => (clone $block)
+                ->setFacing($reader->readCardinalHorizontalFacing())
+                ->setValue($reader->readBoundedInt(BlockStateNames::GROWTH, 0, 3)),
+            fn(CardinalGrowthBlock $block) => Writer::create($id)
+                ->writeCardinalHorizontalFacing($block->getFacing())
+                ->writeInt(BlockStateNames::GROWTH, $block->getValue())
+        );
     }
 
     public static function anyFacingTransparent(string $id): void
@@ -205,19 +258,182 @@ final class BlockStateRegistration
         );
     }
 
-    public static function CherrySapling(): void
+    public static function AgeBit(string $id): void
     {
-        $id = BlockTypeNames::CHERRY_SAPLING;
-        $block = new CherrySapling(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        $block = new SupportedAgeBitPlant(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerStateful($id, $block,
+            fn(Reader $reader): SupportedAgeBitPlant => (clone $block)
+                ->setAgeBit($reader->readBool(BlockStateNames::AGE_BIT)),
+            fn(SupportedAgeBitPlant $block) => Writer::create($id)
+                ->writeBool(BlockStateNames::AGE_BIT, $block->isAgeBit())
+        );
+    }
+
+    public static function Flower(string $id): void
+    {
+        $block = new Flower(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerSimple($id, $block);
+    }
+
+    public static function TallDryGrass(): void
+    {
+        $id = BlockTypeNames::TALL_DRY_GRASS;
+        $block = new TallDryGrass(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerSimple($id, $block);
+    }
+
+    public static function CardinalFacing(string $id): void
+    {
+        $block = new CardinalFacingBlock(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerCardinalFacing($id, $block,
+            fn(CardinalFacingBlock $block, int $facing) => $block->setFacing($facing),
+            fn(CardinalFacingBlock $block, Writer $writer) => $writer->writeCardinalHorizontalFacing($block->getFacing())
+        );
+    }
+
+    public static function CopperChest(string $id): void
+    {
+        $block = new Chest(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerCardinalFacing($id, $block,
+            fn(Chest $block, int $facing) => $block->setFacing($facing),
+            fn(Chest $block, Writer $writer) => $writer->writeCardinalHorizontalFacing($block->getFacing())
+        );
+    }
+
+    public static function CopperGolemStatue(string $id): void
+    {
+        $block = new CopperGolemStatue(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerCardinalFacing($id, $block,
+            fn(CopperGolemStatue $block, int $facing) => $block->setFacing($facing),
+            fn(CopperGolemStatue $block, Writer $writer) => $writer->writeCardinalHorizontalFacing($block->getFacing())
+        );
+    }
+
+    public static function Shelf(string $id): void
+    {
+        $block = new Shelf(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
         self::register($block, [$id]);
 
         GlobalBlockStateHandlers::getDeserializer()->map($id,
-            fn(Reader $reader): CherrySapling => (clone $block)
-                ->setAgeBit($reader->readBool(BlockStateNames::AGE_BIT))
+            fn(Reader $reader): Shelf => (clone $block)
+                ->setFacing($reader->readCardinalHorizontalFacing())
+                ->setPowered($reader->readBool(BlockStateNames::POWERED_BIT))
+                ->setPoweredShelfType($reader->readBoundedInt(BlockStateNames::POWERED_SHELF_TYPE, 0, 3))
         );
         GlobalBlockStateHandlers::getSerializer()->map($block,
+            fn(Shelf $block) => Writer::create($id)
+                ->writeCardinalHorizontalFacing($block->getFacing())
+                ->writeBool(BlockStateNames::POWERED_BIT, $block->isPowered())
+                ->writeInt(BlockStateNames::POWERED_SHELF_TYPE, $block->getPoweredShelfType())
+        );
+    }
+
+    public static function CreakingHeart(): void
+    {
+        $id = BlockTypeNames::CREAKING_HEART;
+        $block = new CreakingHeart(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::register($block, [$id]);
+
+        GlobalBlockStateHandlers::getDeserializer()->map($id,
+            fn(Reader $reader): CreakingHeart => (clone $block)
+                ->setState(match ($state = $reader->readString(BlockStateNames::CREAKING_HEART_STATE)) {
+                    BlockStateStringValues::CREAKING_HEART_STATE_AWAKE => CreakingHeartState::AWAKE,
+                    BlockStateStringValues::CREAKING_HEART_STATE_DORMANT => CreakingHeartState::DORMANT,
+                    BlockStateStringValues::CREAKING_HEART_STATE_UPROOTED => CreakingHeartState::UPROOTED,
+                    default => throw $reader->badValueException(BlockStateNames::CREAKING_HEART_STATE, $state),
+                })
+                ->setNatural($reader->readBool(BlockStateNames::NATURAL))
+                ->setAxis($reader->readPillarAxis())
+        );
+        GlobalBlockStateHandlers::getSerializer()->map($block,
+            fn(CreakingHeart $block) => Writer::create($id)
+                ->writeString(BlockStateNames::CREAKING_HEART_STATE, $block->getState()->value)
+                ->writeBool(BlockStateNames::NATURAL, $block->isNatural())
+                ->writePillarAxis($block->getAxis())
+        );
+    }
+
+    public static function DriedGhast(): void
+    {
+        $id = BlockTypeNames::DRIED_GHAST;
+        $block = new CardinalIntBlock(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::register($block, [$id]);
+
+        GlobalBlockStateHandlers::getDeserializer()->map($id,
+            fn(Reader $reader): CardinalIntBlock => (clone $block)
+                ->setFacing($reader->readCardinalHorizontalFacing())
+                ->setValue($reader->readBoundedInt(BlockStateNames::REHYDRATION_LEVEL, 0, 3))
+        );
+        GlobalBlockStateHandlers::getSerializer()->map($block,
+            fn(CardinalIntBlock $block) => Writer::create($id)
+                ->writeCardinalHorizontalFacing($block->getFacing())
+                ->writeInt(BlockStateNames::REHYDRATION_LEVEL, $block->getValue())
+        );
+    }
+
+    public static function PaleHangingMoss(): void
+    {
+        $id = BlockTypeNames::PALE_HANGING_MOSS;
+        $block = new CherrySapling(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::registerStateful($id, $block,
+            fn(Reader $reader): CherrySapling => (clone $block)
+                ->setAgeBit($reader->readBool(BlockStateNames::TIP)),
             fn(CherrySapling $block) => Writer::create($id)
-                ->writeBool(BlockStateNames::AGE_BIT, $block->isAgeBit())
+                ->writeBool(BlockStateNames::TIP, $block->isAgeBit())
+        );
+    }
+
+    public static function PaleMossCarpet(): void
+    {
+        $id = BlockTypeNames::PALE_MOSS_CARPET;
+        $block = new PaleMossCarpet(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::register($block, [$id]);
+
+        GlobalBlockStateHandlers::getDeserializer()->map($id,
+            fn(Reader $reader): PaleMossCarpet => (clone $block)
+                ->setConnection(Facing::EAST, $reader->readWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_EAST))
+                ->setConnection(Facing::NORTH, $reader->readWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_NORTH))
+                ->setConnection(Facing::SOUTH, $reader->readWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_SOUTH))
+                ->setConnection(Facing::WEST, $reader->readWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_WEST))
+                ->setPost($reader->readBool(BlockStateNames::UPPER_BLOCK_BIT))
+        );
+        GlobalBlockStateHandlers::getSerializer()->map($block,
+            fn(PaleMossCarpet $block) => Writer::create($id)
+                ->writeWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_EAST, $block->getConnection(Facing::EAST))
+                ->writeWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_NORTH, $block->getConnection(Facing::NORTH))
+                ->writeWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_SOUTH, $block->getConnection(Facing::SOUTH))
+                ->writeWallConnectionType(BlockStateNames::PALE_MOSS_CARPET_SIDE_WEST, $block->getConnection(Facing::WEST))
+                ->writeBool(BlockStateNames::UPPER_BLOCK_BIT, $block->isPost())
+        );
+    }
+
+    public static function Slab(string $id, string $doubleId): void
+    {
+        $block = new Slab(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::register($block, [$id]);
+        StringToItemParser::getInstance()->registerBlock($doubleId, fn() => (clone $block)->setSlabType(SlabType::DOUBLE));
+
+        GlobalBlockStateHandlers::getDeserializer()->map($id,
+            fn(Reader $reader): Slab => BlockStateDeserializerHelper::decodeSingleSlab(clone $block, $reader)
+        );
+        GlobalBlockStateHandlers::getDeserializer()->map($doubleId,
+            fn(Reader $reader): Slab => BlockStateDeserializerHelper::decodeDoubleSlab(clone $block, $reader)
+        );
+        GlobalBlockStateHandlers::getSerializer()->map($block,
+            fn(Slab $block) => BlockStateSerializerHelper::encodeSlab($block, $id, $doubleId)
+        );
+    }
+
+    public static function Stair(string $id): void
+    {
+        $block = new Stair(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        self::register($block, [$id]);
+
+        GlobalBlockStateHandlers::getDeserializer()->map($id,
+            fn(Reader $reader): Stair => BlockStateDeserializerHelper::decodeStairs(clone $block, $reader)
+        );
+        GlobalBlockStateHandlers::getSerializer()->map($block,
+            fn(Stair $block) => BlockStateSerializerHelper::encodeStairs($block, Writer::create($id))
         );
     }
 

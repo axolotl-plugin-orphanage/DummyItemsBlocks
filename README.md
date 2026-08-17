@@ -1,10 +1,8 @@
 ![DummyItemsBlocks](https://socialify.git.ci/diamond-gold/DummyItemsBlocks/image?description=1&font=Inter&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fdiamond-gold%2FDummyItemsBlocks%2Fraw%2Fmain%2Ficon.gif&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
 
 > Items and blocks added are not functional, they are just for decoration purposes.
-> 
-> * Except for lingering potions which are functional as normal splash potions.
 >
-> Supports all items and blocks up to Minecraft 1.20
+> Supports all items and blocks up to Minecraft 1.26.44 (26.44)
 >
 > Allows worlds with such items or blocks to be loaded
 > 
@@ -59,12 +57,5 @@ Customizable using the `Main::setCanChangeStatesClosure()` method
 |   Turtle Egg    |  Increase cracks  | Increase egg Count  |
 
 There are many other blocks that can change state by right-clicking.
-
-# Acknowledgements
-Referenced from various PRs on the PocketMine-MP repo
-
-Contains code adapted from
-- #5232 Goat Horn
-- #5455 Firework Star/Rocket
 
 Icon created using textures from: https://modrinth.com/resourcepack/vanillaxbr

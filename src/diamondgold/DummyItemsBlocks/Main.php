@@ -8,6 +8,7 @@ use diamondgold\DummyItemsBlocks\item\ItemPlacedAsBlock;
 use diamondgold\DummyItemsBlocks\tile\DummyTile;
 use diamondgold\DummyItemsBlocks\tile\TileNames;
 use diamondgold\DummyItemsBlocks\util\BlockStateRegistration;
+use diamondgold\DummyItemsBlocks\util\CreativeInventoryRegistration;
 use diamondgold\DummyItemsBlocks\util\ReflectionHelper;
 use diamondgold\DummyItemsBlocks\util\Utils;
 use InvalidArgumentException;
@@ -25,7 +26,6 @@ use pocketmine\data\bedrock\block\BlockTypeNames;
 use pocketmine\data\bedrock\block\convert\UnsupportedBlockStateException;
 use pocketmine\data\bedrock\item\ItemTypeNames;
 use pocketmine\data\bedrock\item\SavedItemData;
-use pocketmine\inventory\CreativeInventory;
 use pocketmine\item\Item;
 use pocketmine\item\ItemBlock;
 use pocketmine\item\ItemIdentifier;
@@ -339,7 +339,115 @@ final class Main extends PluginBase
         }
         // cherry_sapling AGE_BIT T/F CANNOT use encodeSapling() no SAPLING_TYPE
         if (Utils::removeIfPresent(BlockTypeNames::CHERRY_SAPLING, $blocks)) {
-            BlockStateRegistration::CherrySapling();
+            BlockStateRegistration::AgeBit(BlockTypeNames::CHERRY_SAPLING);
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::PALE_OAK_SAPLING, $blocks)) {
+            BlockStateRegistration::AgeBit(BlockTypeNames::PALE_OAK_SAPLING);
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::PALE_HANGING_MOSS, $blocks)) {
+            BlockStateRegistration::PaleHangingMoss();
+        }
+        foreach ([
+                     BlockTypeNames::CLOSED_EYEBLOSSOM,
+                     BlockTypeNames::GOLDEN_DANDELION,
+                     BlockTypeNames::OPEN_EYEBLOSSOM,
+                     BlockTypeNames::FIREFLY_BUSH,
+                     BlockTypeNames::SHORT_DRY_GRASS,
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::Flower($id);
+            }
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::TALL_DRY_GRASS, $blocks)) {
+            BlockStateRegistration::TallDryGrass();
+        }
+        foreach ([
+                     BlockTypeNames::ACACIA_SHELF,
+                     BlockTypeNames::BAMBOO_SHELF,
+                     BlockTypeNames::BIRCH_SHELF,
+                     BlockTypeNames::CHERRY_SHELF,
+                     BlockTypeNames::CRIMSON_SHELF,
+                     BlockTypeNames::DARK_OAK_SHELF,
+                     BlockTypeNames::JUNGLE_SHELF,
+                     BlockTypeNames::MANGROVE_SHELF,
+                     BlockTypeNames::OAK_SHELF,
+                     BlockTypeNames::PALE_OAK_SHELF,
+                     BlockTypeNames::SPRUCE_SHELF,
+                     BlockTypeNames::WARPED_SHELF,
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::Shelf($id);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::COPPER_CHEST,
+                     BlockTypeNames::EXPOSED_COPPER_CHEST,
+                     BlockTypeNames::OXIDIZED_COPPER_CHEST,
+                     BlockTypeNames::WAXED_COPPER_CHEST,
+                     BlockTypeNames::WAXED_EXPOSED_COPPER_CHEST,
+                     BlockTypeNames::WAXED_OXIDIZED_COPPER_CHEST,
+                     BlockTypeNames::WAXED_WEATHERED_COPPER_CHEST,
+                     BlockTypeNames::WEATHERED_COPPER_CHEST,
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::CopperChest($id);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::COPPER_GOLEM_STATUE,
+                     BlockTypeNames::EXPOSED_COPPER_GOLEM_STATUE,
+                     BlockTypeNames::OXIDIZED_COPPER_GOLEM_STATUE,
+                     BlockTypeNames::WAXED_COPPER_GOLEM_STATUE,
+                     BlockTypeNames::WAXED_EXPOSED_COPPER_GOLEM_STATUE,
+                     BlockTypeNames::WAXED_OXIDIZED_COPPER_GOLEM_STATUE,
+                     BlockTypeNames::WAXED_WEATHERED_COPPER_GOLEM_STATUE,
+                     BlockTypeNames::WEATHERED_COPPER_GOLEM_STATUE,
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::CopperGolemStatue($id);
+            }
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::CREAKING_HEART, $blocks)) {
+            BlockStateRegistration::CreakingHeart();
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::DRIED_GHAST, $blocks)) {
+            BlockStateRegistration::DriedGhast();
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::LEAF_LITTER, $blocks)) {
+            BlockStateRegistration::growth(BlockTypeNames::LEAF_LITTER, true);
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::PALE_MOSS_CARPET, $blocks)) {
+            BlockStateRegistration::PaleMossCarpet();
+        }
+        foreach ([
+                     [BlockTypeNames::CINNABAR_BRICK_SLAB, BlockTypeNames::CINNABAR_BRICK_DOUBLE_SLAB],
+                     [BlockTypeNames::CINNABAR_SLAB, BlockTypeNames::CINNABAR_DOUBLE_SLAB],
+                     [BlockTypeNames::POLISHED_CINNABAR_SLAB, BlockTypeNames::POLISHED_CINNABAR_DOUBLE_SLAB],
+                 ] as [$id, $doubleId]) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::Slab($id, $doubleId);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::CINNABAR_BRICK_STAIRS,
+                     BlockTypeNames::CINNABAR_STAIRS,
+                     BlockTypeNames::POLISHED_CINNABAR_STAIRS,
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::Stair($id);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::CINNABAR_BRICK_WALL,
+                     BlockTypeNames::CINNABAR_WALL,
+                     BlockTypeNames::POLISHED_CINNABAR_WALL,
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::wall($id);
+            }
+        }
+        if (Utils::removeIfPresent(BlockTypeNames::WILDFLOWERS, $blocks)) {
+            BlockStateRegistration::growth(BlockTypeNames::WILDFLOWERS, false);
         }
         // chain_command_block command_block repeating_command_block CONDITIONAL_BIT T/F FACING_DIRECTION
         foreach ([BlockTypeNames::COMMAND_BLOCK, BlockTypeNames::REPEATING_COMMAND_BLOCK, BlockTypeNames::CHAIN_COMMAND_BLOCK] as $id) {
@@ -451,8 +559,9 @@ final class Main extends PluginBase
     public static function registerItems(array $items): void
     {
         foreach ($items as $id) {
-            self::registerSimpleItem($id, new DummyItem(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id)), [$id], $id !== ItemTypeNames::FILLED_MAP);
+            self::registerSimpleItem($id, new DummyItem(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id)), [$id], $id !== ItemTypeNames::FILLED_MAP, true);
         }
+        CreativeInventoryRegistration::flush();
     }
 
     /**
@@ -477,7 +586,7 @@ final class Main extends PluginBase
                 if ($block === null) {
                     throw new AssumptionFailedError("Block {$id}_block not registered in StringToItemParser");
                 }
-                self::registerSimpleItem($id, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id), $block), [$id]);
+                self::registerSimpleItem($id, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($id), $block), [$id], true, true);
             }
         }
         // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/5964
@@ -489,7 +598,7 @@ final class Main extends PluginBase
             if ($block === null) {
                 throw new AssumptionFailedError("Block $blockId not registered in StringToItemParser");
             }
-            self::registerSimpleItem($itemId, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($itemId), $block), [$itemId]);
+            self::registerSimpleItem($itemId, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($itemId), $block), [$itemId], true, true);
         }
     }
 
@@ -511,13 +620,13 @@ final class Main extends PluginBase
                 return;
             }
         }
-        CreativeInventory::getInstance()->add($block->asItem());
+        CreativeInventoryRegistration::add($id, $block->asItem());
     }
 
     /**
      * @param string[] $stringToItemParserNames
      */
-    private static function registerSimpleItem(string $id, Item $item, array $stringToItemParserNames, bool $addToCreative = true): void
+    private static function registerSimpleItem(string $id, Item $item, array $stringToItemParserNames, bool $addToCreative = true, bool $queueCreative = false): void
     {
         GlobalItemDataHandlers::getDeserializer()->map($id, fn() => clone $item);
         GlobalItemDataHandlers::getSerializer()->map($item, fn() => new SavedItemData($id));
@@ -531,7 +640,11 @@ final class Main extends PluginBase
             }
         }
         if ($addToCreative) {
-            CreativeInventory::getInstance()->add($item);
+            if ($queueCreative) {
+                CreativeInventoryRegistration::queue($id, $item);
+            } else {
+                CreativeInventoryRegistration::add($id, $item);
+            }
         }
     }
 
