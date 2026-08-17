@@ -9,7 +9,6 @@ use diamondgold\DummyItemsBlocks\block\CalibratedSculkSensor;
 use diamondgold\DummyItemsBlocks\block\CardinalFacingBlock;
 use diamondgold\DummyItemsBlocks\block\CardinalGrowthBlock;
 use diamondgold\DummyItemsBlocks\block\CardinalIntBlock;
-use diamondgold\DummyItemsBlocks\block\CherrySapling;
 use diamondgold\DummyItemsBlocks\block\CommandBlock;
 use diamondgold\DummyItemsBlocks\block\Composter;
 use diamondgold\DummyItemsBlocks\block\Crafter;
@@ -31,6 +30,7 @@ use diamondgold\DummyItemsBlocks\block\Jigsaw;
 use diamondgold\DummyItemsBlocks\block\Kelp;
 use diamondgold\DummyItemsBlocks\block\MangrovePropagule;
 use diamondgold\DummyItemsBlocks\block\Observer;
+use diamondgold\DummyItemsBlocks\block\PaleHangingMoss;
 use diamondgold\DummyItemsBlocks\block\PaleMossCarpet;
 use diamondgold\DummyItemsBlocks\block\Piston;
 use diamondgold\DummyItemsBlocks\block\PointedDripstone;
@@ -374,12 +374,12 @@ final class BlockStateRegistration
     public static function PaleHangingMoss(): void
     {
         $id = BlockTypeNames::PALE_HANGING_MOSS;
-        $block = new CherrySapling(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
+        $block = new PaleHangingMoss(new BlockIdentifier(BlockTypeIds::newId()), Utils::generateNameFromId($id), new BlockTypeInfo(BlockBreakInfo::instant()));
         self::registerStateful($id, $block,
-            fn(Reader $reader): CherrySapling => (clone $block)
-                ->setAgeBit($reader->readBool(BlockStateNames::TIP)),
-            fn(CherrySapling $block) => Writer::create($id)
-                ->writeBool(BlockStateNames::TIP, $block->isAgeBit())
+            fn(Reader $reader): PaleHangingMoss => (clone $block)
+                ->setTip($reader->readBool(BlockStateNames::TIP)),
+            fn(PaleHangingMoss $block) => Writer::create($id)
+                ->writeBool(BlockStateNames::TIP, $block->isTip())
         );
     }
 

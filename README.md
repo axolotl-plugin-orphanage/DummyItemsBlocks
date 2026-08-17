@@ -24,7 +24,7 @@ Join the **axolotl-pm** community for support, updates and discussion:
 
 > Items and blocks added are not functional, they are just for decoration purposes.
 >
-> Supports all items and blocks up to Minecraft 1.26.44 (26.44)
+> Supports all items and blocks up to Minecraft 1.26.40 (26.40)
 >
 > Allows worlds with such items or blocks to be loaded
 > 

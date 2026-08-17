@@ -91,7 +91,7 @@ final class Main extends PluginBase
         //$config->set("blocks", ReflectionHelper::BlockTypeNames());
         $removedBlocks = [
             BlockTypeNames::CLIENT_REQUEST_PLACEHOLDER_BLOCK,
-            //BlockTypeNames::MOVING_BLOCK, // should I remove or not? Does not seem to be useful since it is not interact-able and invisible
+            BlockTypeNames::MOVING_BLOCK
         ];
         $blocks = self::getStringList($config->get("blocks", []), "blocks");
         foreach ($blocks as $k => $id) {
@@ -340,7 +340,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::BUBBLE_COLUMN, $blocks)) {
             BlockStateRegistration::BubbleColumn();
         }
-        // calibrated_sculk_sensor DIRECTION sculk_sensor_phase 0-1
         if (Utils::removeIfPresent(BlockTypeNames::CALIBRATED_SCULK_SENSOR, $blocks)) {
             BlockStateRegistration::CalibratedSculkSensor();
         }
@@ -488,7 +487,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::KELP, $blocks)) {
             BlockStateRegistration::Kelp();
         }
-        // mangrove_propagule HANGING T/F PROPAGULE_STAGE 0
         if (Utils::removeIfPresent(BlockTypeNames::MANGROVE_PROPAGULE, $blocks)) {
             BlockStateRegistration::MangrovePropagule();
         }
@@ -514,7 +512,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::SCULK_CATALYST, $blocks)) {
             BlockStateRegistration::SculkCatalyst();
         }
-        // sculk_sensor POWERED_BIT T/F sculk_sensor_phase 0-1
         if (Utils::removeIfPresent(BlockTypeNames::SCULK_SENSOR, $blocks)) {
             BlockStateRegistration::SculkSensor();
         }
@@ -534,7 +531,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::STRUCTURE_BLOCK, $blocks)) {
             BlockStateRegistration::StructureBlock();
         }
-        // suspicious_gravel suspicious_sand BRUSHED_PROGRESS 0 HANGING T/F
         foreach ([BlockTypeNames::SUSPICIOUS_GRAVEL, BlockTypeNames::SUSPICIOUS_SAND] as $id) {
             if (Utils::removeIfPresent($id, $blocks)) {
                 BlockStateRegistration::SuspiciousFallable($id);
@@ -548,7 +544,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::CRAFTER, $blocks)) {
             BlockStateRegistration::Crafter();
         }
-        // trial spawner trial_spawner_state int 1
         if (Utils::removeIfPresent(BlockTypeNames::TRIAL_SPAWNER, $blocks)) {
             BlockStateRegistration::TrialSpawner();
         }
